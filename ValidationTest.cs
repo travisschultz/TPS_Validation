@@ -12,12 +12,19 @@ namespace TPS_Validation
 	{
 		private ValidationCase _case;
 		private DoseValue _oldDose;
+        private double _oldDoseDouble;
 		private DoseValue _newDose;
 		private double _percentDifference;
+        private double _tolerance;
+        private bool _result;
 		
 		public string OldDoseText { get { return _oldDose.ToString(); } }
 		public string NewDoseText { get { return _newDose.ToString(); } }
 		public string PercentDifferenceText { get { return String.Format("{0:0.00}%", _percentDifference); } }
+        public bool Result
+        {
+            get { return _result; }
+        }
 
 		public ValidationTest(ValidationCase valCase, Beam beam)
 		{
