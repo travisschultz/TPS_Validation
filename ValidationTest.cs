@@ -10,9 +10,10 @@ namespace TPS_Validation
 {
 	class ValidationTest : INotifyPropertyChanged
 	{
-		private ValidationCase _case;
+        private string _name;
+        private ValidationCase _case;
 		private DoseValue _oldDose;
-        private double _oldDoseDouble;
+        private double _oldDoseDouble; // probably don't need
 		private DoseValue _newDose;
 		private double _percentDifference;
         private double _tolerance;
@@ -20,21 +21,51 @@ namespace TPS_Validation
 		
 		public string OldDoseText { get { return _oldDose.ToString(); } }
 		public string NewDoseText { get { return _newDose.ToString(); } }
+        public string Name { get { return _name; } }
 		public string PercentDifferenceText { get { return String.Format("{0:0.00}%", _percentDifference); } }
+        public double PercentDifference { get { return _percentDifference; } set { _percentDifference = value; } }
         public bool Result
         {
             get { return _result; }
+            set { _result = value; }
         }
 
 		public ValidationTest(ValidationCase valCase, Beam beam)
 		{
 			_case = valCase;
 
-			foreach (ReferencePoint refPoint in _case.Plan.ReferencePoints)
+			foreach (ReferencePoint refPoint in _case.ReferencePlan.ReferencePoints)
 			{
 
 			}
 		}
+
+        public ValidationTest(string name, DoseValue oldVal, DoseValue newVal, double tolerance)  // think 
+        {
+            _name = name;
+            _oldDose = oldVal;
+            _newDose = newVal;
+            _tolerance = tolerance;
+            RunTestEvaluation();
+        }
+
+        public void RunTestEvaluation()  // think this is good to go
+        {
+            PercentDifference = (1 - (_newDose / _oldDose))*100;
+
+            if (!Double.IsNaN(_tolerance))
+            {
+                if (Math.Abs(PercentDifference)<= _tolerance)
+                {
+                    Result = true;
+                }
+                else
+                {
+                    Result = false;
+                }
+            }
+            else { System.Windows.MessageBox.Show("No Tolerance Value Set"); }
+        }
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
