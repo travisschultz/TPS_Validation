@@ -24,11 +24,11 @@ namespace TPS_Validation
 
 			foreach (Beam beam in plan.Beams.Where(b => !b.IsSetupField))
 			{
-				AddBeamValidation(beam);
+				AddValidationTest(beam);
 			}
 		}
 
-		private void AddBeamValidation(Beam beam)
+		private void AddValidationTest(Beam beam)
 		{
 			ValidationTests.Add(new ValidationTest(this, beam));
 		}
