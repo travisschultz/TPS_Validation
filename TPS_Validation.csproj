@@ -58,6 +58,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CalculateTestPlans.cs" />
     <Compile Include="Machine.cs" />
     <Compile Include="RefPointResult.cs" />
     <Compile Include="UpdateCalculationAlgorithms.cs" />
