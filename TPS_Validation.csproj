@@ -60,6 +60,7 @@
     </ApplicationDefinition>
     <Compile Include="Machine.cs" />
     <Compile Include="RefPointResult.cs" />
+    <Compile Include="UpdateCalculationAlgorithms.cs" />
     <Compile Include="ValidationCase.cs" />
     <Compile Include="ValidationGroup.cs" />
     <Compile Include="ValidationTest.cs" />
