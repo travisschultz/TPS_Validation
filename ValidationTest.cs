@@ -8,9 +8,9 @@ using VMS.TPS.Common.Model.Types;
 
 namespace TPS_Validation
 {
-	class ValidationTest : INotifyPropertyChanged
+	public class ValidationTest : INotifyPropertyChanged
 	{
-        private string _name;
+        private string _testName;
         private ValidationCase _case;
 		private DoseValue _oldDose;
         private double _oldDoseDouble; // probably don't need
@@ -21,7 +21,7 @@ namespace TPS_Validation
 		
 		public string OldDoseText { get { return _oldDose.ToString(); } }
 		public string NewDoseText { get { return _newDose.ToString(); } }
-        public string Name { get { return _name; } }
+        public string TestName { get { return _testName; } }
 		public string PercentDifferenceText { get { return String.Format("{0:0.00}%", _percentDifference); } }
         public double PercentDifference { get { return _percentDifference; } set { _percentDifference = value; } }
         public bool Result
@@ -42,7 +42,7 @@ namespace TPS_Validation
 
         public ValidationTest(string name, DoseValue oldVal, DoseValue newVal, double tolerance)  // think 
         {
-            _name = name;
+            _testName = name;
             _oldDose = oldVal;
             _newDose = newVal;
             _tolerance = tolerance;

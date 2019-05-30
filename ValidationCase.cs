@@ -8,7 +8,7 @@ using VMS.TPS.Common.Model.Types;
 
 namespace TPS_Validation
 {
-	class ValidationCase : INotifyPropertyChanged
+	public class ValidationCase : INotifyPropertyChanged
 	{
 		private List<ValidationTest> _validationTests;
 		//private ValidationGroup _group;  // not sure we would need this if Validation Cases exist within groups
@@ -40,6 +40,7 @@ namespace TPS_Validation
 
         public ValidationCase (ExternalPlanSetup refPlan, ExternalPlanSetup testPlan, string testCaseName)
         {
+            ValidationTests = new List<ValidationTest>();
             ReferencePlan = refPlan;
             TestPlan = testPlan;
             Name = testCaseName;
@@ -49,8 +50,10 @@ namespace TPS_Validation
 
         public ValidationCase (Beam refBeam, Beam testBeam, string testName)
         {
+            ValidationTests = new List<ValidationTest>();
             _referenceBeam = refBeam;
             _testBeam = testBeam;
+            _name = testName;
             Type = "Field";
             RunFieldValidationTests();
         }
@@ -64,17 +67,19 @@ namespace TPS_Validation
         {
             for (int iRefPt=0; iRefPt < _referenceBeam.FieldReferencePoints.Count(); iRefPt++)
             {
-                // This would assume the reference points are in the same order for each field
+                if (!Double.IsNaN(_referenceBeam.FieldReferencePoints.ElementAt(iRefPt).RefPointLocation.x))
+                {
+                    // This would assume the reference points are in the same order for each field
 
-                // HARDCODING SOMETHING HERE
-                double toleranceValueHardCoded = 2;
+                    // HARDCODING SOMETHING HERE
+                    double toleranceValueHardCoded = 2;
 
-                // Writing it long style to make it easier to see at first, may be too long to one line it anyhow
-                DoseValue refDV = _referenceBeam.FieldReferencePoints.ElementAt(iRefPt).FieldDose;
-                DoseValue testDV = _testBeam.FieldReferencePoints.ElementAt(iRefPt).FieldDose;
-                string testName = _referenceBeam.FieldReferencePoints.ElementAt(iRefPt).Id.ToString();
-                ValidationTests.Add(new ValidationTest(testName,refDV,testDV, toleranceValueHardCoded));
-
+                    // Writing it long style to make it easier to see at first, may be too long to one line it anyhow
+                    DoseValue refDV = _referenceBeam.FieldReferencePoints.ElementAt(iRefPt).FieldDose;
+                    DoseValue testDV = _testBeam.FieldReferencePoints.ElementAt(iRefPt).FieldDose;
+                    string testName = _referenceBeam.FieldReferencePoints.ElementAt(iRefPt).ReferencePoint.Id.ToString();
+                    ValidationTests.Add(new ValidationTest(testName, refDV, testDV, toleranceValueHardCoded));
+                }
             }
         }
         private void RunPlanValidationTests()
@@ -95,23 +100,42 @@ namespace TPS_Validation
                     // GRAB THE REF STRUCT
                     try
                     {
-                        var refStruct = ReferencePlan.StructureSet.Structures.Where(n => n.Id == testStruct.Id);
-                        //ValidationTests.Add( new ValidationTest("Dmax", refStruct.Do))
+                        var refStruct = ReferencePlan.StructureSet.Structures.Where(n => n.Id == testStruct.Id).FirstOrDefault();
+
+                        // variables for creting the cases
+                        var rsDVH = ReferencePlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                        var tsDVH = TestPlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                        var rsD95 = ReferencePlan.GetDoseAtVolume(refStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+                        var tsD95 = TestPlan.GetDoseAtVolume(refStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+
+                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, 2));
+                        ValidationTests.Add(new ValidationTest(testStruct.Id + "Dmin", rsDVH.MinDose, tsDVH.MinDose, 2));
+                        ValidationTests.Add(new ValidationTest(testStruct.Id + "Mean", rsDVH.MeanDose, tsDVH.MeanDose, 2));
+                        ValidationTests.Add(new ValidationTest(testStruct.Id + "D95", rsD95, tsD95, 2));
+
                     }
                     catch
                     {
                         System.Windows.MessageBox.Show("Error in the target runplanvalidations in validationscase");
                     }
-                    
-
-                   
-
-           
 
                 }
-                else if (s.DicomType=="Avoidance")
+                else if (testStruct.DicomType=="Avoidance")
                 {
                     // run the avoidance tests
+                    var refStruct = ReferencePlan.StructureSet.Structures.Where(n => n.Id == testStruct.Id).FirstOrDefault();
+
+                    // variables for creting the cases
+                    var rsDVH = ReferencePlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                    var tsDVH = TestPlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                    var rsD95 = ReferencePlan.GetDoseAtVolume(refStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+                    var tsD95 = TestPlan.GetDoseAtVolume(refStruct, 20, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+
+                    ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, 2));
+                    ValidationTests.Add(new ValidationTest(testStruct.Id + "Dmin", rsDVH.MinDose, tsDVH.MinDose, 2));
+                    ValidationTests.Add(new ValidationTest(testStruct.Id + "Mean", rsDVH.MeanDose, tsDVH.MeanDose, 2));
+                    ValidationTests.Add(new ValidationTest(testStruct.Id + "D20", rsD95, tsD95, 2));
+
                 }
 
             }

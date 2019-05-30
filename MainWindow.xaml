@@ -10,7 +10,7 @@
 		<DockPanel Margin="5,5,5,5">
 			<StackPanel Orientation="Vertical">
 				<Label Content="Photon Algorithm" HorizontalAlignment="Center"/>
-				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top" SelectionChanged="ComboBox_ValidatePhotonSelection"/>
+				<ComboBox ItemsSource="{Binding PhotonCalcModels}" SelectedItem="{Binding SelectedPhotonCalcModel}" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top" SelectionChanged="ComboBox_ValidatePhotonSelection"/>
 				<!--Label Content="Photon Algorithm (Acuros)" HorizontalAlignment="Center"/>
 				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top"/-->
 			</StackPanel>
@@ -32,15 +32,15 @@
 						<ListView ItemsSource="{Binding Groups}">
 							<ListView.ItemTemplate>
 								<DataTemplate>
-									<Expander Header="{Binding CourseID}" IsExpanded="True">
+									<Expander Header="{Binding Name}" IsExpanded="True">
 										<ListView ItemsSource="{Binding Cases}">
 											<ListView.ItemTemplate>
 												<DataTemplate>
-													<Expander Header="{Binding PlanID}" IsExpanded="True">
+													<Expander Header="{Binding Name}" IsExpanded="True">
 														<ListView ItemsSource="{Binding ValidationTests}">
 															<ListView.View>
 																<GridView>
-																	<GridViewColumn Header="Reference Point" DisplayMemberBinding="{Binding RefPointName}"/>
+																	<GridViewColumn Header="Reference Point" DisplayMemberBinding="{Binding TestName}"/>
 																	<GridViewColumn Header="Baseline Dose" DisplayMemberBinding="{Binding OldDoseText}"/>
 																	<GridViewColumn Header="New Dose" DisplayMemberBinding="{Binding NewDoseText}"/>
 																	<GridViewColumn Header="% Difference" DisplayMemberBinding="{Binding PercentDifferenceText}"/>

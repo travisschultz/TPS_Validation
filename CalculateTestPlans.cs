@@ -7,28 +7,37 @@ using VMS.TPS.Common.Model.Types;
 
 namespace TPS_Validation
 {
-    class CalculateTestPlans
+    public static class CalculateTestPlans
     {
-        public CalculateTestPlans(Patient p)
+        public static void Calculate(VMS.TPS.Common.Model.API.Application app, Patient p)
         {
+            //p.BeginModifications();
+
             foreach (Course c in p.Courses)
             {
                 foreach (ExternalPlanSetup ebps in c.ExternalPlanSetups)
                 {
-                    if (ebps.Id.ToCharArray()[0].Equals("T"))
+                    if (ebps.Id[0] == 'T')
                     {
                         try
                         {
-                            ebps.CalculateDose();
+                            CalculationResult cr;
+                            cr=ebps.CalculateDose();
+                            // System.Windows.MessageBox.Show(cr.ToString());
+                            
                         }
-                        catch
+                        catch(Exception e)
                         {
-                            System.Windows.MessageBox.Show("For some reason the script couldn't recalculate the dose");
+                            System.Windows.MessageBox.Show($"For some reason the script couldn't calculate the plan: {ebps.Id}\n{e.Message}");
                         }
                     }
                 }
             }
 
+            System.Windows.MessageBox.Show("Completed Calculating the plans");
+
+            //app.SaveModifications();
+            
         }
     }
 }

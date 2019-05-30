@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using VMS.TPS.Common.Model.API;
 
 namespace TPS_Validation
 {
-	class Machine : INotifyPropertyChanged
+	public class Machine : INotifyPropertyChanged
 	{
 		private List<ValidationGroup> _groups;
 		private string _machineId;
@@ -25,11 +26,14 @@ namespace TPS_Validation
 			{
 				AddValidation(course);
 			}
-		}
+
+            //MessageBox.Show(String.Join(", ", Groups.Select(x => x.Name)));
+            //MessageBox.Show(dumpContentsTheLongWay());
+        }
 
 		private void AddValidation(Course course)
 		{
-			Groups.Add(new ValidationGroup(this, course));
+			Groups.Add(new ValidationGroup(course));
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -42,5 +46,22 @@ namespace TPS_Validation
 				handler(this, new PropertyChangedEventArgs(name));
 			}
 		}
-	}
+        public string dumpContentsTheLongWay()
+        {
+            string output = "";
+            foreach (ValidationGroup vg in Groups)
+            {
+                foreach (ValidationCase vc in vg.Cases)
+                {
+                    foreach (ValidationTest vt in vc.ValidationTests)
+                    {
+                        output+=vg.Name + "," + vc.Name + "," + vt.TestName + "," + vt.OldDoseText + "," + vt.NewDoseText + "," + vt.PercentDifferenceText + "," + vt.Result.ToString() + "\n";
+                    }
+                }
+            }
+            return output;
+            
+        }
+
+    }
 }

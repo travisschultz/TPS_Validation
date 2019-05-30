@@ -8,17 +8,22 @@ using VMS.TPS.Common.Model.Types;
 
 namespace TPS_Validation
 {
-    class RunEvaluation
+    public static class RunEvaluation
     {
-        private List<Machine> _machineValidations;
-        public Machine m;
+        //private List<Machine> _machineValidations;
+        //public Machine m;
 
-        public Machine RunEvaluationOnPatient(Patient p)
+        public static Machine RunEvaluationOnPatient(Patient p)
         {
-            m.MachineID = p.FirstName;
+            Machine m = new Machine(p);
             foreach (Course c in p.Courses)
             {
-                m.Groups.Add(new ValidationGroup(c)); // Validation group constructor to read (for ease)
+
+                // Validation group constructor to read (for ease)
+                // Constructor will also figure out whether or not they are plan or field based verifications
+
+                m.Groups.Add(new ValidationGroup(c));
+               
 
 
                 //foreach (ExternalPlanSetup ebps in c.ExternalPlanSetups)

@@ -3,22 +3,27 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 using VMS.TPS.Common.Model.API;
+
+//[assembly: ESAPIScript(IsWriteable = true)]
+//[assembly: AssemblyVersion("1.0.0.5")]
 
 namespace TPS_Validation
 {
 	class ViewModel : INotifyPropertyChanged
 	{
-		private VMS.TPS.Common.Model.API.Application _app;
 		private string _status;
-		private ObservableCollection<RefPointResult> _validations;
+		private ObservableCollection<Machine> _machines;
 		private List<String> _photonCalcModels;
 		private String _selectedPhotonCalcModel;
 
+		public VMS.TPS.Common.Model.API.Application App { get; set; }
 		public string Status { get { return _status; } set { _status = value; OnPropertyChanged("Status"); } }
-		public ObservableCollection<RefPointResult> Validations { get { return _validations; } set { _validations = value; OnPropertyChanged("Validations"); } }
+		public ObservableCollection<Machine> Machines { get { return _machines; } set { _machines = value; OnPropertyChanged("Machines"); } }
 		public List<String> PhotonCalcModels { get { return _photonCalcModels; } set { _photonCalcModels = value; OnPropertyChanged("PhotonCalcModels"); } }
 		public String SelectedPhotonCalcModel { get { return _selectedPhotonCalcModel; } set { _selectedPhotonCalcModel = value; OnPropertyChanged("SelectedPhotonCalcModel"); } }
 
@@ -29,7 +34,7 @@ namespace TPS_Validation
 			try
 			{
 				Status = "Logging in...";
-				_app = VMS.TPS.Common.Model.API.Application.CreateApplication();
+				App = VMS.TPS.Common.Model.API.Application.CreateApplication();
 				Status = "";
 			}
 			catch (Exception exception)
@@ -38,7 +43,12 @@ namespace TPS_Validation
 			}
 			#endregion
 
-			PhotonCalcModels = GetPhotonCalcModels();
+
+			UpdateStatus("Gathering photon algorithms...");
+			PhotonCalcModels = new List<string>(GetPhotonCalcModels());
+			UpdateStatus("");
+
+			Machines = new ObservableCollection<Machine>();
 		}
 
 		private List<String> GetPhotonCalcModels()
@@ -46,27 +56,44 @@ namespace TPS_Validation
 			List<String> modelList = new List<string>();
 
 			//loop through all of the patients and pull models which are available to them
-			foreach(String id in Xml.GetPatientIDs())
+			foreach (String id in Xml.GetPatientIDs())
 			{
-				DateTime time = DateTime.Now;//can delete later, just to time how long these loops take
-
-				Patient patient = _app.OpenPatientById(id);
+				Patient patient = App.OpenPatientById(id);
 
 				//loop through all of the nonelectron courses and plans
 				foreach(Course course in patient.Courses.Where(c => c.Id != "Electron"))
 				{
 					foreach(ExternalPlanSetup plan in course.ExternalPlanSetups)
 					{
-						modelList.AddRange(plan.GetModelsForCalculationType(VMS.TPS.Common.Model.Types.CalculationType.PhotonVolumeDose));
+						modelList = new List<String>(modelList.Union(plan.GetModelsForCalculationType(VMS.TPS.Common.Model.Types.CalculationType.PhotonVolumeDose)));
 					}
 				}
-				
-				_app.ClosePatient();
 
-				MessageBox.Show($"Checking all plans in {patient} took:\n{DateTime.Now - time}");
+				App.ClosePatient();
 			}
 
 			return modelList;
+		}
+
+		public static void RefreshUI()
+		{
+			DispatcherFrame frame = new DispatcherFrame();
+			Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(delegate (object parameter)
+			{
+				frame.Continue = false;
+				return null;
+			}), null);
+
+			Dispatcher.PushFrame(frame);
+			//EDIT:
+			System.Windows.Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(delegate { }));
+		}
+
+		public void UpdateStatus(string status)
+		{
+			Status = status;
+
+			RefreshUI();
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
