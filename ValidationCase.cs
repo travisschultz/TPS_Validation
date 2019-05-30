@@ -11,22 +11,25 @@ namespace TPS_Validation
 	class ValidationCase : INotifyPropertyChanged
 	{
 		private List<ValidationTest> _validationTests;
-		private ValidationGroup _group;  // not sure we would need this if Validation Cases exist within groups
-		private PlanSetup _referencePlan;
-        private PlanSetup _testPlan;
+		//private ValidationGroup _group;  // not sure we would need this if Validation Cases exist within groups
+		private ExternalPlanSetup _referencePlan;
+        private ExternalPlanSetup _testPlan;
         private Beam _referenceBeam;
         private Beam _testBeam;
+        private string _name;
         private string _type; // "beam" tests or "plan" tests
 
         public List<ValidationTest> ValidationTests { get { return _validationTests; } set { _validationTests = value; OnPropertyChanged("ValidationTests"); } }
-		public ValidationGroup Group { get { return _group; } set { _group = value; OnPropertyChanged("Group"); } }
-		public PlanSetup ReferencePlan { get { return _referencePlan; } set { _referencePlan = value; } }
-        public PlanSetup TestPlan { get { return _testPlan; } set { _testPlan = value; } }
-        public string Type { get { return _type; } set { _type = value; } }
+		//public ValidationGroup Group { get { return _group; } set { _group = value; OnPropertyChanged("Group"); } }
+		public ExternalPlanSetup ReferencePlan { get { return _referencePlan; } set { _referencePlan = value; } }
+        public ExternalPlanSetup TestPlan { get { return _testPlan; } set { _testPlan = value; } }
+        public string Name { get { return _name; } set { _name = value; OnPropertyChanged("Name"); } }
+        public string Type { get { return _type; } set { _type = value; OnPropertyChanged("Type"); } }
 
-		public ValidationCase(ValidationGroup group, PlanSetup plan)
+
+		public ValidationCase(ValidationGroup group, ExternalPlanSetup plan)
 		{
-			Group = group;
+			//Group = group;
 			ReferencePlan = plan;
 
 			foreach (Beam beam in plan.Beams.Where(b => !b.IsSetupField))
@@ -35,10 +38,11 @@ namespace TPS_Validation
 			}
 		}
 
-        public ValidationCase (PlanSetup refPlan, PlanSetup testPlan, string testCaseName)
+        public ValidationCase (ExternalPlanSetup refPlan, ExternalPlanSetup testPlan, string testCaseName)
         {
             ReferencePlan = refPlan;
             TestPlan = testPlan;
+            Name = testCaseName;
             RunPlanValidationTests();
 
         }
@@ -76,9 +80,9 @@ namespace TPS_Validation
         private void RunPlanValidationTests()
         {
             //
-            foreach (Structure s in TestPlan.StructureSet.Structures)
+            foreach (Structure testStruct in TestPlan.StructureSet.Structures) // assumes the same structure set
             {
-                if ( s.DicomType == "PTV")
+                if ( testStruct.DicomType == "PTV")
                 {
                     ///  Tests for the target type go here
                     ///   - dmax
@@ -86,9 +90,21 @@ namespace TPS_Validation
                     ///   - mean dose
                     ///   - d95
                     ///
-                    // ValidationTest vt = new ValidationTest();
 
-                    // ValidationTests.Add()
+
+                    // GRAB THE REF STRUCT
+                    try
+                    {
+                        var refStruct = ReferencePlan.StructureSet.Structures.Where(n => n.Id == testStruct.Id);
+                        //ValidationTests.Add( new ValidationTest("Dmax", refStruct.Do))
+                    }
+                    catch
+                    {
+                        System.Windows.MessageBox.Show("Error in the target runplanvalidations in validationscase");
+                    }
+                    
+
+                   
 
            
 

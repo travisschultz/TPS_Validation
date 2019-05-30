@@ -24,5 +24,25 @@ namespace TPS_Validation
 			InitializeComponent();
 			DataContext = new ViewModel();
 		}
+
+		private void Button_Click_UpdateAlgorithms(object sender, RoutedEventArgs e)
+		{
+
+		}
+
+		private void Button_Click_CalcBeams(object sender, RoutedEventArgs e)
+		{
+
+		}
+
+		private void Button_Click_RunEvaluation(object sender, RoutedEventArgs e)
+		{
+
+		}
+
+		private void ComboBox_ValidatePhotonSelection(object sender, RoutedEventArgs e)
+		{
+			//loop through photon plans in patients and display somewhere any plans that the algorithm isn't available for and will skip if you continue to use this selection
+		}
 	}
 }
