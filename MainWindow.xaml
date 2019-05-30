@@ -18,10 +18,15 @@
 				<Label Content="Electrom Algorithm" HorizontalAlignment="Center"/>
 				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="10,0,5,0" VerticalAlignment="Top"/>
 			</StackPanel>
-			<StackPanel Orientation="Vertical">
+			<StackPanel Orientation="Vertical" DockPanel.Dock="Right">
 				<Button Content="Update Calculation Algorithms" Click="Button_Click_UpdateAlgorithms" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
 				<Button Content="Calculate Test Beams" Click="Button_Click_CalcBeams" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
 				<Button Content="Run Evaluation" Click="Button_Click_RunEvaluation" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
+				<Button Content="Run All" Click="Button_Click_RunAll" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
+			</StackPanel>
+			<StackPanel Orientation="Vertical" DockPanel.Dock="Right">
+				<Button Content="Print to PDF" Click="Button_Click_PrintToPDF" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
+				<Button Content="Print to CSV File" Click="Button_Click_PrintToCSV" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
 			</StackPanel>
 		</DockPanel>
 

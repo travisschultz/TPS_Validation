@@ -53,7 +53,7 @@ namespace TPS_Validation
             ValidationTests = new List<ValidationTest>();
             _referenceBeam = refBeam;
             _testBeam = testBeam;
-            _name = testName;
+            Name = testName;
             Type = "Field";
             RunFieldValidationTests();
         }

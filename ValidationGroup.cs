@@ -48,14 +48,14 @@ namespace TPS_Validation
             for (int iCase = 0; iCase < referencePlanSetups.Count; iCase++) // Risk of size of each not matching
             {
                 //!!!!!!!!!!!! CHECK COURSE NAME, IF IT IS Field VALIDATION RUN THIS, ELSE
-                if (Name=="Photons" || Name=="Electrons")
+                if (Name.ToLower().Contains("photon") || Name.ToLower().Contains("electron"))
                 {
                     // Field Based
                     for (int iBeam=0;iBeam<testPlanSetups.ElementAt(iCase).Beams.Count();iBeam++)
                     {
                         var refBeam = referencePlanSetups.ElementAt(iCase).Beams.ElementAt(iBeam);
                         var testBeam = testPlanSetups.ElementAt(iCase).Beams.ElementAt(iBeam);
-                        var caseName = testBeam.Id;
+                        var caseName = $"{testBeam.Plan.Id.Split('_')[1]} - {testBeam.Id}";
                         Cases.Add(new ValidationCase(refBeam, testBeam, caseName));
                     }
                 }
