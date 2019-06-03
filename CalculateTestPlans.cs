@@ -9,7 +9,7 @@ namespace TPS_Validation
 {
     public static class CalculateTestPlans
     {
-        public static void Calculate(VMS.TPS.Common.Model.API.Application app, Patient p)
+        public static void Calculate(ViewModel vm, Patient p)
         {
             //p.BeginModifications();
 
@@ -21,6 +21,7 @@ namespace TPS_Validation
                     {
                         try
                         {
+                            vm.UpdateStatus($"Calculating course: {ebps.Course.Id} plan: {ebps.Id}");
                             CalculationResult cr;
                             cr=ebps.CalculateDose();
                             // System.Windows.MessageBox.Show(cr.ToString());
@@ -36,7 +37,7 @@ namespace TPS_Validation
 
             System.Windows.MessageBox.Show("Completed Calculating the plans");
 
-            //app.SaveModifications();
+            //vm.App.SaveModifications(); //!!! modified line when changed to passing view model. Untested, could cause issues.
             
         }
     }

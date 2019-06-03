@@ -48,7 +48,7 @@ namespace TPS_Validation
 				Patient patient = vm.App.OpenPatientById(id);
 
 				vm.UpdateStatus($"Calculating plans on {patient.Name}...");
-				CalculateTestPlans.Calculate(vm.App, patient);
+				CalculateTestPlans.Calculate(vm, patient);
 
 				vm.App.ClosePatient();
 			}

@@ -14,7 +14,7 @@ using VMS.TPS.Common.Model.API;
 
 namespace TPS_Validation
 {
-	class ViewModel : INotifyPropertyChanged
+	public class ViewModel : INotifyPropertyChanged
 	{
 		private string _status;
 		private ObservableCollection<Machine> _machines;
