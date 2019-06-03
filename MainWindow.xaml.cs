@@ -89,7 +89,7 @@ namespace TPS_Validation
 
 				//calc plans
 				vm.UpdateStatus($"Calculating plans on {patient.Name}...");
-				CalculateTestPlans.Calculate(vm.App, patient);
+				CalculateTestPlans.Calculate(vm, patient);
 
 				//show results
 				vm.UpdateStatus($"Running evaluation on {patient.Name}...");
