@@ -1,10 +1,13 @@
-﻿using System;
+﻿using MigraDoc.DocumentObjectModel;
+using MigraDoc.Rendering.Printing;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
 using VMS.TPS.Common.Model.API;
+using VMS.TPS.Common.Model.Types;
 
 namespace TPS_Validation
 {
@@ -21,25 +24,41 @@ namespace TPS_Validation
 
 		private void Button_Click_UpdateAlgorithms(object sender, RoutedEventArgs e)
 		{
-			//need to validate that an algorithm is actually selected first
+			ValidationLog.Instance.ClearLog();
 
 			ViewModel vm = DataContext as ViewModel;
 
-			foreach (String id in Xml.GetPatientIDs())
+			//make sure a selection is made
+			if (vm.SelectedPhotonCalcModel != "")
 			{
-				Patient patient = vm.App.OpenPatientById(id);
+				foreach (String id in Xml.GetPatientIDs())
+				{
+					Patient patient = vm.App.OpenPatientById(id);
 
-				vm.UpdateStatus($"Updating photon algorithms on {patient.Name}...");
-				UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
+					//only run if we are on the selected machine or we want to run for all machines
+					if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+					{
+						vm.UpdateStatus($"Updating photon algorithms on {patient.Name}...");
+						UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
+					}
 
-				vm.App.ClosePatient();
+
+					vm.App.ClosePatient();
+				}
+			}
+			else
+			{
+				MessageBox.Show("Please select a photon calculation algorithm first", "Error", MessageBoxButton.OK, MessageBoxImage.Hand);
 			}
 
 			vm.UpdateStatus("");
+
+			DisplayLogWindow();
 		}
 
 		private void Button_Click_CalcBeams(object sender, RoutedEventArgs e)
 		{
+			ValidationLog.Instance.ClearLog();
 
 			ViewModel vm = DataContext as ViewModel;
 
@@ -47,58 +66,90 @@ namespace TPS_Validation
 			{
 				Patient patient = vm.App.OpenPatientById(id);
 
-				vm.UpdateStatus($"Calculating plans on {patient.Name}...");
-				CalculateTestPlans.Calculate(vm, patient);
+				//only run if we are on the selected machine or we want to run for all machines
+				if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+				{
+					vm.UpdateStatus($"Calculating plans on {patient.Name}...");
+					CalculateTestPlans.Calculate(vm, patient);
+				}
 
 				vm.App.ClosePatient();
 			}
 
 			vm.UpdateStatus("");
+
+			DisplayLogWindow();
 		}
 
 		private void Button_Click_RunEvaluation(object sender, RoutedEventArgs e)
 		{
-            ViewModel vm = DataContext as ViewModel;
+			ValidationLog.Instance.ClearLog();
+
+			ViewModel vm = DataContext as ViewModel;
+			vm.Machines.Clear();
 
             foreach (String id in Xml.GetPatientIDs())
             {
                 Patient patient = vm.App.OpenPatientById(id);
 
-				vm.UpdateStatus($"Running Evaluation on {patient.Name}...");
-				vm.Machines.Add(new Machine(patient));
+				//only run if we are on the selected machine or we want to run for all machines
+				if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+				{
+					vm.UpdateStatus($"Running Evaluation on {patient.Name}...");
+					vm.Machines.Add(new Machine(patient));
+				}
 
                 vm.App.ClosePatient();
             }
             
             vm.UpdateStatus("");
+
+			DisplayLogWindow();
 		}
 
 		private void Button_Click_RunAll(object sender, RoutedEventArgs e)
 		{
 			//need to validate that an algorithm is actually selected first
 
+			ValidationLog.Instance.ClearLog();
+
 			ViewModel vm = DataContext as ViewModel;
 
-			foreach (String id in Xml.GetPatientIDs())
+			if (vm.SelectedPhotonCalcModel != "")
 			{
-				Patient patient = vm.App.OpenPatientById(id);
+				vm.Machines.Clear();
 
-				//update algorithm
-				vm.UpdateStatus($"Updating photon algorithm on {patient.Name}...");
-				UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
+				foreach (String id in Xml.GetPatientIDs())
+				{
+					Patient patient = vm.App.OpenPatientById(id);
 
-				//calc plans
-				vm.UpdateStatus($"Calculating plans on {patient.Name}...");
-				CalculateTestPlans.Calculate(vm, patient);
+					//only run if we are on the selected machine or we want to run for all machines
+					if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+					{
+						//update algorithm
+						vm.UpdateStatus($"Updating photon algorithm on {patient.Name}...");
+						UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
 
-				//show results
-				vm.UpdateStatus($"Running evaluation on {patient.Name}...");
-				vm.Machines.Add(new Machine(patient));
+						//calc plans
+						vm.UpdateStatus($"Calculating plans on {patient.Name}...");
+						CalculateTestPlans.Calculate(vm, patient);
 
-				vm.App.ClosePatient();
+						//show results
+						vm.UpdateStatus($"Running evaluation on {patient.Name}...");
+						vm.Machines.Add(new Machine(patient));
+					}
+
+					vm.App.ClosePatient();
+				}
+			}
+			else
+			{
+				MessageBox.Show("Please select a photon calculation algorithm first", "Error", MessageBoxButton.OK, MessageBoxImage.Hand);
 			}
 
 			vm.UpdateStatus("");
+
+			DisplayLogWindow();
 		}
 
 		private void ComboBox_ValidatePhotonSelection(object sender, RoutedEventArgs e)
@@ -106,6 +157,7 @@ namespace TPS_Validation
 			//loop through photon plans in patients and display somewhere any plans that the algorithm isn't available for and will skip if you continue to use this selection
 
 			ViewModel vm = DataContext as ViewModel;
+			bool valid = true;
 
 			vm.UpdateStatus("Checking photon algorithm selection...");
 
@@ -118,14 +170,35 @@ namespace TPS_Validation
 				{
 					foreach (ExternalPlanSetup plan in course.ExternalPlanSetups)
 					{
-						//modelList = new List<String>(modelList.Union(plan.GetModelsForCalculationType(VMS.TPS.Common.Model.Types.CalculationType.PhotonVolumeDose)));
+						//see if selected alg is in the available models
+						if (!plan.GetModelsForCalculationType(CalculationType.PhotonVolumeDose).Contains(vm.SelectedPhotonCalcModel))
+						{
+							valid = false;
+							//add machine name to list
+							vm.PhotonSelectionValidation += $"{patient.FirstName}, ";
+						}
 					}
 				}
 
 				vm.App.ClosePatient();
 			}
 
+			vm.PhotonSelectionValidation.TrimEnd(' ');
+			vm.PhotonSelectionValidation.TrimEnd(',');
+
+			//if everything passed hide the message
+			if (valid)
+				vm.PhotonSelectionValidation = "";
+			else
+				vm.PhotonSelectionValidation.Insert(0, "AAA algorithm selection is not approved for ");
+
 			vm.UpdateStatus("");
+		}
+
+		private void DisplayLogWindow()
+		{
+			if (ValidationLog.Instance.GetLog() != "")
+				MessageBox.Show(ValidationLog.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
 		}
 
 		private void Button_Click_PrintToCSV(object sender, RoutedEventArgs e)
@@ -169,91 +242,70 @@ namespace TPS_Validation
 			}
 		}
 
+		private void Button_Click_ErrorLog(object sender, RoutedEventArgs e)
+		{
+			MessageBox.Show(ValidationLog.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
+		}
+
 		void Button_Click_PrintToPDF(object sender, RoutedEventArgs e)
 		{
+			ViewModel vm = DataContext as ViewModel;
+
 			//this was all copy pasted from DVHAnalysis, still need to go through it
 			MessageBox.Show("Not yet implemented");
 
-		//	//validate that evaluation has been run
+			if (vm.Machines.Count == 0)
+			{
+				MessageBox.Show("Please run evaluation first", "No Evaluation", MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
+			}
+			
+			var reportData = CreateReportData();
 
-		//	var reportService = new ReportPdf();
-		//	var reportData = CreateReportData();
+			System.Windows.Forms.PrintDialog printDlg = new System.Windows.Forms.PrintDialog();
+			MigraDocPrintDocument printDoc = new MigraDocPrintDocument();
+			printDoc.Renderer = new MigraDoc.Rendering.DocumentRenderer(CreateReportData());
+			printDoc.Renderer.PrepareDocument();
 
-		//	System.Windows.Forms.PrintDialog printDlg = new System.Windows.Forms.PrintDialog();
-		//	MigraDocPrintDocument printDoc = new MigraDocPrintDocument();
-		//	printDoc.Renderer = new MigraDoc.Rendering.DocumentRenderer(reportService.CreateReport(reportData));
-		//	printDoc.Renderer.PrepareDocument();
+			printDoc.DocumentName = Window.GetWindow(this).Title;
+			//printDoc.PrintPage += new PrintPageEventHandler(printDoc_PrintPage);
+			printDlg.Document = printDoc;
+			printDlg.AllowSelection = true;
+			printDlg.AllowSomePages = true;
+			//Call ShowDialog
+			if (printDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+				printDoc.Print();
+		}
 
-		//	printDoc.DocumentName = Window.GetWindow(this).Title;
-		//	//printDoc.PrintPage += new PrintPageEventHandler(printDoc_PrintPage);
-		//	printDlg.Document = printDoc;
-		//	printDlg.AllowSelection = true;
-		//	printDlg.AllowSomePages = true;
-		//	//Call ShowDialog
-		//	if (printDlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-		//		printDoc.Print();
-		//}
+		private Document CreateReportData()
+		{
+			ViewModel vm = DataContext as ViewModel;
 
-		//private ReportData CreateReportData()
-		//{
-		//	ReportData reportData = new ReportData();
+			Document doc = new Document();
+			Internal.CustomStyles.Define(doc);
+			Section section = new Section();
 
-		//	reportData.Patient = new SimplePdfReport.Reporting.Patient
-		//	{
-		//		Id = _vm.PatientID,
-		//		Name = _vm.PatientName
-		//	};
+			// Set up page
+			section.PageSetup.PageFormat = PageFormat.Letter;
 
-		//	reportData.User = new SimplePdfReport.Reporting.User
-		//	{
-		//		Username = _vm.CurrentUser
-		//	};
+			section.PageSetup.LeftMargin = Internal.Size.LeftRightPageMargin;
+			section.PageSetup.TopMargin = Internal.Size.TopBottomPageMargin;
+			section.PageSetup.RightMargin = Internal.Size.LeftRightPageMargin;
+			section.PageSetup.BottomMargin = Internal.Size.TopBottomPageMargin;
 
-		//	reportData.Plans = new SimplePdfReport.Reporting.Plans
-		//	{
+			section.PageSetup.HeaderDistance = Internal.Size.HeaderFooterMargin;
+			section.PageSetup.FooterDistance = Internal.Size.HeaderFooterMargin;
 
-		//		Id = _vm.PlanID,
-		//		Course = _vm.CourseID == "" ? "" : $" ({_vm.CourseID})",
-		//		Protocol = ConstraintList.GetProtocolName(_vm.SelectedProtocol),
-		//		PlanList = new List<Plan>()
-		//	};
+			// Add heder and footer
+			new Internal.HeaderAndFooter().Add(section);
 
-		//	foreach (PlanInformation plan in _vm.Plans)
-		//	{
-		//		SimplePdfReport.Reporting.Plan newPlan = new SimplePdfReport.Reporting.Plan
-		//		{
-		//			Id = plan.PlanID,
-		//			TotalDose = plan.TotalPlannedDose,
-		//			DosePerFx = plan.DosePerFraction,
-		//			Fractions = plan.NumberOfFractions
-		//		};
+			// Add contents
+			new Internal.MachineInfo().Add(section);
+			new Internal.ValidationTableContent().Add(section);
 
-		//		reportData.Plans.PlanList.Add(newPlan);
-		//	}
+			doc.Add(section);
 
-		//	reportData.DvhTable = new DVHTable
-		//	{
-		//		Title = "DVH Analysis Report"
-		//	};
-
-		//	foreach (DVHTableRow row in _vm.DVHTable)
-		//	{
-		//		SimplePdfReport.Reporting.DVHTableRow newRow = new SimplePdfReport.Reporting.DVHTableRow();
-
-		//		newRow.StructureId = row.Structure ?? "";
-		//		newRow.PlanStructureId = row.SelectedStructure != null ? row.SelectedStructure.Id : "";
-		//		newRow.Constraint = row.ConstraintText ?? "";
-		//		newRow.VariationConstraint = row.VariationConstraintText ?? "";
-		//		newRow.Limit = row.LimitText ?? "";
-		//		newRow.VariationLimit = row.VariationLimitText ?? "";
-		//		newRow.PlanValue = row.PlanValueText ?? "";
-		//		newRow.PlanResult = row.PlanResult ?? "";
-		//		newRow.PlanResultColor = row.PlanResultColor;
-
-		//		reportData.DvhTable.Rows.Add(newRow);
-		//	}
-
-		//	return reportData;
+			return doc;
 		}
 	}
 }

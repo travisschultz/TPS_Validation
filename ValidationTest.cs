@@ -36,7 +36,6 @@ namespace TPS_Validation
 
 			foreach (ReferencePoint refPoint in _case.ReferencePlan.ReferencePoints)
 			{
-
 			}
 		}
 

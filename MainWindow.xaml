@@ -5,17 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TPS_Validation"
         mc:Ignorable="d"
-        Title="TPS Validation and QA" SizeToContent="Height" Height="450" Width="800">
-	<StackPanel Orientation="Vertical" Margin="5,5,5,5">
-		<DockPanel Margin="5,5,5,5">
+        Title="TPS Validation and QA" SizeToContent="WidthAndHeight" Height="300" MaxHeight="1000" Width="800">
+	<Grid Margin="5,5,5,5">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		
+		<DockPanel Margin="5,5,5,5" Grid.Row="0">
 			<StackPanel Orientation="Vertical">
 				<Label Content="Photon Algorithm" HorizontalAlignment="Center"/>
 				<ComboBox ItemsSource="{Binding PhotonCalcModels}" SelectedItem="{Binding SelectedPhotonCalcModel}" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top" SelectionChanged="ComboBox_ValidatePhotonSelection"/>
 				<!--Label Content="Photon Algorithm (Acuros)" HorizontalAlignment="Center"/>
-				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top"/-->
+			<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top"/-->
+				<TextBlock Text="{Binding PhotonSelectionValidation}" Foreground="Tomato" Margin="5,5,5,5"/>
 			</StackPanel>
 			<StackPanel Orientation="Vertical">
-				<Label Content="Electrom Algorithm" HorizontalAlignment="Center"/>
+				<Label Content="Electron Algorithm" HorizontalAlignment="Center"/>
 				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="10,0,5,0" VerticalAlignment="Top"/>
 			</StackPanel>
 			<StackPanel Orientation="Vertical" DockPanel.Dock="Right">
@@ -24,13 +31,17 @@
 				<Button Content="Run Evaluation" Click="Button_Click_RunEvaluation" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
 				<Button Content="Run All" Click="Button_Click_RunAll" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>
 			</StackPanel>
-			<StackPanel Orientation="Vertical" DockPanel.Dock="Right">
-				<Button Content="Print to PDF" Click="Button_Click_PrintToPDF" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
-				<Button Content="Print to CSV File" Click="Button_Click_PrintToCSV" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
-			</StackPanel>
+			<DockPanel Margin="10,0,10,0">
+				<Button Content="Print to PDF" Click="Button_Click_PrintToPDF" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" DockPanel.Dock="Bottom"/>
+				<Button Content="Print to CSV File" Click="Button_Click_PrintToCSV" Height="25" Width="100" Margin="5,5,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" DockPanel.Dock="Bottom"/>
+				<StackPanel DockPanel.Dock="Top">
+					<Label Content="Selected Machine" Margin="5,5,5,5" HorizontalAlignment="Center"/>
+					<ComboBox ItemsSource="{Binding MachineList}" SelectedItem="{Binding SelectedMachine}" Width="125" HorizontalAlignment="Center"/>
+				</StackPanel>
+			</DockPanel>
 		</DockPanel>
 
-		<ListView ItemsSource="{Binding Machines}" Margin="5,5,5,5">
+		<ListView ItemsSource="{Binding Machines}" Margin="5,5,5,5" DockPanel.Dock="Bottom" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="False">
 			<ListView.ItemTemplate>
 				<DataTemplate>
 					<Expander Header="{Binding MachineID}" IsExpanded="True">
@@ -48,7 +59,18 @@
 																	<GridViewColumn Header="Reference Point" DisplayMemberBinding="{Binding TestName}"/>
 																	<GridViewColumn Header="Baseline Dose" DisplayMemberBinding="{Binding OldDoseText}"/>
 																	<GridViewColumn Header="New Dose" DisplayMemberBinding="{Binding NewDoseText}"/>
-																	<GridViewColumn Header="% Difference" DisplayMemberBinding="{Binding PercentDifferenceText}"/>
+																	<GridViewColumn Header="% Difference">
+																		<GridViewColumn.CellTemplate>
+																			<DataTemplate  DataType="{x:Type ListViewItem}">
+																				<TextBlock Name="Result" Text="{Binding PercentDifferenceText}"/>
+																				<DataTemplate.Triggers>
+																					<DataTrigger Binding="{Binding Result}" Value="False">
+																						<Setter TargetName="Result" Property="Background" Value="Gold" />
+																					</DataTrigger>
+																				</DataTemplate.Triggers>
+																			</DataTemplate>
+																		</GridViewColumn.CellTemplate>
+																	</GridViewColumn>
 																</GridView>
 															</ListView.View>
 														</ListView>
@@ -64,6 +86,9 @@
 				</DataTemplate>
 			</ListView.ItemTemplate>
 		</ListView>
-		<TextBlock Text="{Binding Status}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,5,5,5"/>
-	</StackPanel>
+		
+		<TextBlock Text="{Binding Status}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,5,5,5" Grid.Row="2"/>
+		<Button Content="Show Error Log" HorizontalAlignment="Right" Grid.Row="2" Click="Button_Click_ErrorLog"/>
+	</Grid>
+	
 </Window>

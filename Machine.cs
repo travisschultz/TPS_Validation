@@ -33,7 +33,7 @@ namespace TPS_Validation
 
 		private void AddValidation(Course course)
 		{
-			Groups.Add(new ValidationGroup(course));
+			Groups.Add(new ValidationGroup(course, this));
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

@@ -22,7 +22,7 @@ namespace TPS_Validation
                 // Validation group constructor to read (for ease)
                 // Constructor will also figure out whether or not they are plan or field based verifications
 
-                m.Groups.Add(new ValidationGroup(c));
+                m.Groups.Add(new ValidationGroup(c, m));
                
 
 

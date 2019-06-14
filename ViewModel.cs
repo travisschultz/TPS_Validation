@@ -9,8 +9,8 @@ using System.Windows;
 using System.Windows.Threading;
 using VMS.TPS.Common.Model.API;
 
-//[assembly: ESAPIScript(IsWriteable = true)]
-//[assembly: AssemblyVersion("1.0.0.5")]
+[assembly: ESAPIScript(IsWriteable = true)]
+[assembly: AssemblyVersion("1.0.0.10")]
 
 namespace TPS_Validation
 {
@@ -20,12 +20,18 @@ namespace TPS_Validation
 		private ObservableCollection<Machine> _machines;
 		private List<String> _photonCalcModels;
 		private String _selectedPhotonCalcModel;
+		private String _photonSelectionValidation;
+		private List<String> _machineList;
+		private String _selectedMachine;
 
 		public VMS.TPS.Common.Model.API.Application App { get; set; }
 		public string Status { get { return _status; } set { _status = value; OnPropertyChanged("Status"); } }
 		public ObservableCollection<Machine> Machines { get { return _machines; } set { _machines = value; OnPropertyChanged("Machines"); } }
 		public List<String> PhotonCalcModels { get { return _photonCalcModels; } set { _photonCalcModels = value; OnPropertyChanged("PhotonCalcModels"); } }
 		public String SelectedPhotonCalcModel { get { return _selectedPhotonCalcModel; } set { _selectedPhotonCalcModel = value; OnPropertyChanged("SelectedPhotonCalcModel"); } }
+		public String PhotonSelectionValidation { get { return _photonSelectionValidation; } set { _photonSelectionValidation = value; OnPropertyChanged("PhotonSelectionValidation"); } }
+		public List<String> MachineList { get { return _machineList; } set { _machineList = value; OnPropertyChanged("MachineList"); } }
+		public String SelectedMachine { get { return _selectedMachine; } set { _selectedMachine = value; OnPropertyChanged("SelectedMachine"); } }
 
 		public ViewModel()
 		{
@@ -43,12 +49,24 @@ namespace TPS_Validation
 			}
 			#endregion
 
+			PhotonSelectionValidation = "";
 
 			UpdateStatus("Gathering photon algorithms...");
 			PhotonCalcModels = new List<string>(GetPhotonCalcModels());
 			UpdateStatus("");
 
 			Machines = new ObservableCollection<Machine>();
+
+			//set up dropdown of machines
+			MachineList = new List<string>();
+			MachineList.Add("All Machines");
+			SelectedMachine = "All Machines";
+			foreach(String id in Xml.GetPatientIDs())
+			{
+				Patient patient = App.OpenPatientById(id);
+				MachineList.Add(patient.FirstName);
+				App.ClosePatient();
+			}
 		}
 
 		private List<String> GetPhotonCalcModels()

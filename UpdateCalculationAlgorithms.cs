@@ -12,7 +12,7 @@ namespace TPS_Validation
     {
         public static void Update(VMS.TPS.Common.Model.API.Application app, Patient p, String photonAlg, String electronAlg)
         {
-			//p.BeginModifications();
+			p.BeginModifications();
 
             foreach (Course c in p.Courses)
             {
@@ -23,6 +23,8 @@ namespace TPS_Validation
                         try
 						{
 							ebps.SetCalculationModel(CalculationType.PhotonVolumeDose, photonAlg);
+							ebps.SetCalculationOption(electronAlg, "SmoothingMethod", "3-D_Gaussian");
+							ebps.SetCalculationOption(electronAlg, "SmoothingLevel", "Medium");
                         }
                         catch(Exception e)
                         {
@@ -32,7 +34,7 @@ namespace TPS_Validation
 				}
             }
 
-			//app.SaveModifications();
+			app.SaveModifications();
 
 			MessageBox.Show("Finished updating photon calculation algorithms.  Unfortunately electron algorithms are not available through scripting and must be changed by hand", "Update Finished", MessageBoxButton.OK, MessageBoxImage.Exclamation);
         }
