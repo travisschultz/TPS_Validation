@@ -5,13 +5,13 @@ namespace TPS_Validation.Internal
 {
 	internal class HeaderAndFooter
 	{
-		public void Add(Section section)
+		public void Add(Section section, ViewModel vm)
 		{
-			AddHeader(section);
+			AddHeader(section, vm);
 			AddFooter(section);
 		}
 
-		private void AddHeader(Section section)
+		private void AddHeader(Section section, ViewModel vm)
 		{
 			var header = section.Headers.Primary.AddParagraph();
 			header.Style = StyleNames.Header;

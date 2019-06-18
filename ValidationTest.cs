@@ -21,6 +21,7 @@ namespace TPS_Validation
 		
 		public string OldDoseText { get { return _oldDose.ToString(); } }
 		public string NewDoseText { get { return _newDose.ToString(); } }
+        public string ToleranceText { get { return String.Format("{0:0.00}%", _tolerance); } }
         public string TestName { get { return _testName; } }
 		public string PercentDifferenceText { get { return String.Format("{0:0.00}%", _percentDifference); } }
         public double PercentDifference { get { return _percentDifference; } set { _percentDifference = value; } }
@@ -28,6 +29,20 @@ namespace TPS_Validation
         {
             get { return _result; }
             set { _result = value; }
+        }
+        public string ResultText
+        {
+            get
+            {
+                if (_result)
+                {
+                    return "Pass";
+                }
+                else
+                {
+                    return "Fail";
+                }
+            }
         }
 
 		public ValidationTest(ValidationCase valCase, Beam beam)

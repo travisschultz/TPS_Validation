@@ -18,10 +18,11 @@ namespace TPS_Validation
 			{
                 foreach (ExternalPlanSetup ebps in c.ExternalPlanSetups)
                 {
+					// only calculate the test plans
                     if (ebps.Id[0] == 'T')
                     {
 						// Find reference plan and save the MU
-						ExternalPlanSetup refPlan = c.ExternalPlanSetups.Where(x => x.Id.Substring(1) == ebps.Id.Substring(1)).First();
+						ExternalPlanSetup refPlan = c.ExternalPlanSetups.Where(x => x.Id.Substring(0,2) == "R" + ebps.Id[1]).First();
 						List<KeyValuePair<string, MetersetValue>> MUList = new List<KeyValuePair<string, MetersetValue>>();
 
 						foreach(Beam b in refPlan.Beams)
@@ -29,14 +30,23 @@ namespace TPS_Validation
 							MUList.Add(new KeyValuePair<string, MetersetValue>(b.Id, b.Meterset));
 						}
 
-
 						try
                         {
                             vm.UpdateStatus($"Calculating Machine: {ebps.Beams.First().TreatmentUnit.Id} Course: {ebps.Course.Id} Plan: {ebps.Id}");
-							CalculationResult cr;
 							//cr=ebps.CalculateDose();
-							cr = ebps.CalculateDoseWithPresetValues(MUList);                     // this might only work for the IMRT plan
-                            // System.Windows.MessageBox.Show(cr.ToString());                            
+							ebps.CalculateDoseWithPresetValues(MUList);        // this might only work for the IMRT plan         
+
+							// only adjust the MUs to 100 for non-IMRT plans
+							if (c.Id.ToLower().Contains("electron") || c.Id.ToLower().Contains("photon"))
+							{
+								//loop through each beam and adjust the MUs to 100
+								foreach (Beam b in ebps.Beams)
+								{
+									BeamParameters beamParams = b.GetEditableParameters();
+									beamParams.WeightFactor = b.WeightFactor * 100.0 / b.Meterset.Value;
+									b.ApplyParameters(beamParams);
+								}
+							}
                         }
                         catch(Exception e)
                         {

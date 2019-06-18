@@ -8,6 +8,9 @@ namespace TPS_Validation.Internal
 		public const string ColumnHeader = "ColumnHeader";
 		public const string Table = "Table";
 		public const string Hidden = "Hidden";
+        public const string CellPass = "CellPass";
+        public const string CellFail = "CellFail";
+        public const string CellWarn = "CellWarn";
 
 		public static void Define(Document doc)
 		{
@@ -31,7 +34,20 @@ namespace TPS_Validation.Internal
 			heading2.ParagraphFormat.RightIndent = 15;  //Size.TableCellPadding;
 			heading2.ParagraphFormat.Borders.Distance = Size.TableCellPadding;
 
-			var header = doc.Styles[StyleNames.Header];
+            var heading3 = doc.Styles[StyleNames.Heading3];
+            heading3.BaseStyle = StyleNames.Normal;
+            heading3.ParagraphFormat.Shading.Color = Color.FromCmyk(100, 38, 0, 15);
+            heading3.ParagraphFormat.Font.Color = Color.FromCmyk(0, 0, 0, 0);
+            heading3.ParagraphFormat.Font.Bold = true;
+            heading3.ParagraphFormat.Font.Size = 10;
+            heading3.ParagraphFormat.SpaceBefore = 10;
+            heading3.ParagraphFormat.LeftIndent = 20;   //Size.TableCellPadding;
+            heading3.ParagraphFormat.RightIndent = 15;  //Size.TableCellPadding;
+            heading3.ParagraphFormat.Borders.Distance = Size.TableCellPadding;
+
+
+
+            var header = doc.Styles[StyleNames.Header];
 			header.Font.Size = 8;
 
 			var footer = doc.Styles[StyleNames.Footer];
@@ -39,12 +55,24 @@ namespace TPS_Validation.Internal
 
 			var columnHeader = doc.Styles.AddStyle(ColumnHeader, StyleNames.Normal);
 			columnHeader.Font.Size = 9;
-			columnHeader.ParagraphFormat.Alignment = ParagraphAlignment.Center;
+			columnHeader.ParagraphFormat.Alignment = ParagraphAlignment.Left;
 			columnHeader.ParagraphFormat.Font.Bold = true;
 			columnHeader.ParagraphFormat.LeftIndent = Size.TableCellPadding;
 			columnHeader.ParagraphFormat.RightIndent = Size.TableCellPadding;
 
-			var table = doc.Styles.AddStyle(Table, StyleNames.Normal);
+            var cellPass = doc.Styles.AddStyle(CellPass, StyleNames.Normal);
+            cellPass.Font.Size = 8;
+            cellPass.Font.Color = Color.FromCmyk(100, 0, 100, 62);
+
+            var cellFail = doc.Styles.AddStyle(CellFail, StyleNames.Normal);
+            cellPass.Font.Size = 8;
+            cellPass.Font.Color = Color.FromCmyk(0, 100, 96, 39);
+
+            var cellWarn = doc.Styles.AddStyle(CellWarn, StyleNames.Normal);
+            cellPass.Font.Size = 8;
+            cellPass.Font.Color = Color.FromCmyk(0, 35, 100, 39);
+
+            var table = doc.Styles.AddStyle(Table, StyleNames.Normal);
 			table.Font.Size = 8;
 			table.ParagraphFormat.Alignment = ParagraphAlignment.Center;
 

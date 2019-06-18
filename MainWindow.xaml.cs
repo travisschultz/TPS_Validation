@@ -252,7 +252,7 @@ namespace TPS_Validation
 			ViewModel vm = DataContext as ViewModel;
 
 			//this was all copy pasted from DVHAnalysis, still need to go through it
-			MessageBox.Show("Not yet implemented");
+			MessageBox.Show("Under development, Proceed at your own risk! (However, you have no choice but to proceed now)");
 
 			if (vm.Machines.Count == 0)
 			{
@@ -297,11 +297,11 @@ namespace TPS_Validation
 			section.PageSetup.FooterDistance = Internal.Size.HeaderFooterMargin;
 
 			// Add heder and footer
-			new Internal.HeaderAndFooter().Add(section);
+			new Internal.HeaderAndFooter().Add(section, vm);
 
 			// Add contents
-			new Internal.MachineInfo().Add(section);
-			new Internal.ValidationTableContent().Add(section);
+			//new Internal.MachineInfo().Add(section);
+			new Internal.ValidationTableContent().Add(section, vm);
 
 			doc.Add(section);
 
