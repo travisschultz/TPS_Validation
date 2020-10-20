@@ -10,7 +10,7 @@ using System.Windows.Threading;
 using VMS.TPS.Common.Model.API;
 
 [assembly: ESAPIScript(IsWriteable = true)]
-[assembly: AssemblyVersion("1.0.0.10")]
+[assembly: AssemblyVersion("1.0.0.0")]
 
 namespace TPS_Validation
 {
@@ -19,8 +19,13 @@ namespace TPS_Validation
 		private string _status;
 		private ObservableCollection<Machine> _machines;
 		private List<String> _photonCalcModels;
+		private List<String> _acurosCalcModels;
 		private String _selectedPhotonCalcModel;
+		private String _selectedAcurosCalcModel;
+		private String _selectedElectronCalcModel;
 		private String _photonSelectionValidation;
+		private Double _photonTolerance = 2;
+		private Double _electronTolerance = 2;
 		private List<String> _machineList;
 		private String _selectedMachine;
 
@@ -28,8 +33,13 @@ namespace TPS_Validation
 		public string Status { get { return _status; } set { _status = value; OnPropertyChanged("Status"); } }
 		public ObservableCollection<Machine> Machines { get { return _machines; } set { _machines = value; OnPropertyChanged("Machines"); } }
 		public List<String> PhotonCalcModels { get { return _photonCalcModels; } set { _photonCalcModels = value; OnPropertyChanged("PhotonCalcModels"); } }
+		public List<String> AcurosCalcModels { get { return _acurosCalcModels; } set { _acurosCalcModels = value; OnPropertyChanged("AcurosCalcModels"); } }
 		public String SelectedPhotonCalcModel { get { return _selectedPhotonCalcModel; } set { _selectedPhotonCalcModel = value; OnPropertyChanged("SelectedPhotonCalcModel"); } }
+		public String SelectedAcurosCalcModel { get { return _selectedAcurosCalcModel; } set { _selectedAcurosCalcModel = value; OnPropertyChanged("SelectedAcurosCalcModel"); } }
+		public String SelectedElectronCalcModel { get { return _selectedElectronCalcModel; } set { _selectedElectronCalcModel = value; OnPropertyChanged("SelectedElectronCalcModel"); } }
 		public String PhotonSelectionValidation { get { return _photonSelectionValidation; } set { _photonSelectionValidation = value; OnPropertyChanged("PhotonSelectionValidation"); } }
+		public Double PhotonTolerance { get { return _photonTolerance; } set { _photonTolerance = value; OnPropertyChanged("PhotonTolerance"); } }
+		public Double ElectronTolerance { get { return _electronTolerance; } set { _electronTolerance = value; OnPropertyChanged("ElectronTolerance"); } }
 		public List<String> MachineList { get { return _machineList; } set { _machineList = value; OnPropertyChanged("MachineList"); } }
 		public String SelectedMachine { get { return _selectedMachine; } set { _selectedMachine = value; OnPropertyChanged("SelectedMachine"); } }
 
@@ -53,14 +63,17 @@ namespace TPS_Validation
 
 			UpdateStatus("Gathering photon algorithms...");
 			PhotonCalcModels = new List<string>(GetPhotonCalcModels());
+			AcurosCalcModels = new List<string>(PhotonCalcModels.Where(x => x.ToLower().Contains("acurosxb")));
+			PhotonCalcModels = new List<string>(PhotonCalcModels.Where(x => !x.ToLower().Contains("acurosxb")));
 			UpdateStatus("");
 
 			Machines = new ObservableCollection<Machine>();
 
 			//set up dropdown of machines
 			MachineList = new List<string>();
-			MachineList.Add("All Machines");
-			SelectedMachine = "All Machines";
+			//MachineList.Add("All Machines");
+			MachineList.Add("Select Machine");
+			SelectedMachine = "Select Machine";
 			foreach(String id in Xml.GetPatientIDs())
 			{
 				Patient patient = App.OpenPatientById(id);
@@ -123,6 +136,13 @@ namespace TPS_Validation
 			{
 				handler(this, new PropertyChangedEventArgs(name));
 			}
+
+			if (name == "PhotonTolerance")
+			{
+				Globals.Instance.SetPhotonTolerance(PhotonTolerance);
+			}
+			if (name == "ElectronTolerance")
+				Globals.Instance.SetElectronTolerance(ElectronTolerance);
 		}
 	}
 }

@@ -68,7 +68,7 @@ namespace TPS_Validation
         private void RunFieldValidationTests() 
         {
 			if (Math.Round(_testBeam.Meterset.Value, 2) != Math.Round(_referenceBeam.Meterset.Value, 2))
-				ValidationLog.Instance.CreateEntry($"MUs not equal - {Group.Machine.MachineID} - {Group.Name} - {Name} - Reference Beam: {_referenceBeam.Id}({_referenceBeam.Meterset.Value} MU) Test Beam: {_testBeam.Id}({_testBeam.Meterset.Value} MU)\n");
+				Globals.Instance.CreateLogEntry($"MUs not equal - {Group.Machine.MachineID} - {Group.Name} - {Name} - Reference Beam: {_referenceBeam.Id}({_referenceBeam.Meterset.Value} MU) Test Beam: {_testBeam.Id}({_testBeam.Meterset.Value} MU)\n");
 				//System.Windows.MessageBox.Show($"MUs not equal - {Group.Machine.MachineID} - {Group.Name} - {Name} - Reference Beam: {_referenceBeam.Id}({_referenceBeam.Meterset}) Test Beam: {_testBeam.Id}({_testBeam.Meterset})");
 
 			foreach ( FieldReferencePoint rfrp in _referenceBeam.FieldReferencePoints.Where(x => !Double.IsNaN(x.RefPointLocation.x)))
@@ -86,9 +86,9 @@ namespace TPS_Validation
 
 				// below if essentially makes sure the reference point is inside the field being evaluated
 				//if (rfrp.FieldDose > analysisCutoffFraction*_referenceBeam.Dose.GetAbsoluteBeamDoseValue(_referenceBeam.Dose.DoseMax3D))
-				if (rfrp.FieldDose > new DoseValue(50, DoseValue.DoseUnit.cGy))
+				if (rfrp.FieldDose > new DoseValue(40, DoseValue.DoseUnit.cGy))
 				{
-                    ValidationTests.Add(new ValidationTest(testName, rfrp.FieldDose, tfrp.FieldDose, toleranceValueHardCoded));
+                    ValidationTests.Add(new ValidationTest(testName, rfrp.FieldDose, tfrp.FieldDose, this));
                 }
             }
 
@@ -117,8 +117,16 @@ namespace TPS_Validation
         }
         private void RunPlanValidationTests()
         {
-            //
-            foreach (Structure testStruct in TestPlan.StructureSet.Structures) // assumes the same structure set
+			//check that MUs are the same for each beam
+			foreach (Beam refBeam in ReferencePlan.Beams.Where(x => !x.IsSetupField))
+			{
+				Beam testBeam = TestPlan.Beams.Where(x => x.Id == refBeam.Id).First();
+				if (Math.Round(refBeam.Meterset.Value, 2) != Math.Round(testBeam.Meterset.Value, 2))
+					Globals.Instance.CreateLogEntry($"MUs not equal - {Group.Machine.MachineID} - {Group.Name} - {Name} - Reference Beam: {refBeam.Id}({refBeam.Meterset.Value} MU) Test Beam: {testBeam.Id}({testBeam.Meterset.Value} MU)\n");
+			}
+
+			//
+			foreach (Structure testStruct in TestPlan.StructureSet.Structures) // assumes the same structure set
             {
                 if ( testStruct.DicomType.ToUpper() == "PTV")
                 {
@@ -137,14 +145,18 @@ namespace TPS_Validation
 
                         // variables for creting the cases
                         var rsDVH = ReferencePlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
-                        var tsDVH = TestPlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                        var tsDVH = TestPlan.GetDVHCumulativeData(testStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
                         var rsD95 = ReferencePlan.GetDoseAtVolume(refStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
-                        var tsD95 = TestPlan.GetDoseAtVolume(refStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+                        var tsD95 = TestPlan.GetDoseAtVolume(testStruct, 95, VolumePresentation.Relative, DoseValuePresentation.Absolute);
 
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmin", rsDVH.MinDose, tsDVH.MinDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Mean", rsDVH.MeanDose, tsDVH.MeanDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " D95", rsD95, tsD95, 2));
+						if(rsDVH.MaxDose.Dose > 10 && tsDVH.MaxDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, this));
+						if (rsDVH.MinDose.Dose > 10 && tsDVH.MinDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmin", rsDVH.MinDose, tsDVH.MinDose, this));
+						if (rsDVH.MeanDose.Dose > 10 && tsDVH.MeanDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Mean", rsDVH.MeanDose, tsDVH.MeanDose, this));
+						if (rsD95.Dose > 10 && rsD95.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " D95", rsD95, tsD95, this));
 
                     }
                     catch(Exception e)
@@ -162,14 +174,18 @@ namespace TPS_Validation
 
                         // variables for creting the cases
                         var rsDVH = ReferencePlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
-                        var tsDVH = TestPlan.GetDVHCumulativeData(refStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
+                        var tsDVH = TestPlan.GetDVHCumulativeData(testStruct, DoseValuePresentation.Absolute, VolumePresentation.Relative, 1);
                         var rsD20 = ReferencePlan.GetDoseAtVolume(refStruct, 20, VolumePresentation.Relative, DoseValuePresentation.Absolute);
-                        var tsD20 = TestPlan.GetDoseAtVolume(refStruct, 20, VolumePresentation.Relative, DoseValuePresentation.Absolute);
+                        var tsD20 = TestPlan.GetDoseAtVolume(testStruct, 20, VolumePresentation.Relative, DoseValuePresentation.Absolute);
 
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmin", rsDVH.MinDose, tsDVH.MinDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " Mean", rsDVH.MeanDose, tsDVH.MeanDose, 2));
-                        ValidationTests.Add(new ValidationTest(testStruct.Id + " D20", rsD20, tsD20, 2));
+						if (rsDVH.MaxDose.Dose > 10 && tsDVH.MaxDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmax", rsDVH.MaxDose, tsDVH.MaxDose, this));
+						if (rsDVH.MinDose.Dose > 10 && tsDVH.MinDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Dmin", rsDVH.MinDose, tsDVH.MinDose, this));
+						if (rsDVH.MeanDose.Dose > 10 && tsDVH.MeanDose.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " Mean", rsDVH.MeanDose, tsDVH.MeanDose, this));
+						if (rsD20.Dose > 10 && tsD20.Dose > 10)
+							ValidationTests.Add(new ValidationTest(testStruct.Id + " D20", rsD20, tsD20, this));
                     }
                     catch(Exception e)
                     {

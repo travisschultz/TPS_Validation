@@ -16,14 +16,24 @@
 		<DockPanel Margin="5,5,5,5" Grid.Row="0">
 			<StackPanel Orientation="Vertical">
 				<Label Content="Photon Algorithm" HorizontalAlignment="Center"/>
-				<ComboBox ItemsSource="{Binding PhotonCalcModels}" SelectedItem="{Binding SelectedPhotonCalcModel}" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top" SelectionChanged="ComboBox_ValidatePhotonSelection"/>
-				<!--Label Content="Photon Algorithm (Acuros)" HorizontalAlignment="Center"/>
-			<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="5,0,10,0" VerticalAlignment="Top"/-->
+				<ComboBox ItemsSource="{Binding PhotonCalcModels}" SelectedItem="{Binding SelectedPhotonCalcModel}" Width="150" Height="25" Margin="5,0,10,5" VerticalAlignment="Top" SelectionChanged="ComboBox_ValidatePhotonSelection"/>
+				<Label Content="Photon Algorithm (Acuros)" HorizontalAlignment="Center"/>
+				<ComboBox ItemsSource="{Binding AcurosCalcModels}" SelectedItem="{Binding SelectedAcurosCalcModel}" Width="150" Height="25" Margin="5,0,10,5" VerticalAlignment="Top"/>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="5,5,5,5">
+					<TextBlock Text="Photon Tolerance: " VerticalAlignment="Center"/>
+					<TextBox x:Name="PhotonTolerance" Text="{Binding PhotonTolerance}" Width="25" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+					<TextBlock Text="%" VerticalAlignment="Center"/>
+				</StackPanel>
 				<TextBlock Text="{Binding PhotonSelectionValidation}" Foreground="Tomato" Margin="5,5,5,5"/>
 			</StackPanel>
 			<StackPanel Orientation="Vertical">
 				<Label Content="Electron Algorithm" HorizontalAlignment="Center"/>
-				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="10,0,5,0" VerticalAlignment="Top"/>
+				<ComboBox SelectedValue="Select Photon" Width="150" Height="25" Margin="10,0,5,5" VerticalAlignment="Top"/>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="5,5,5,5">
+					<TextBlock Text="Electron Tolerance: " VerticalAlignment="Center"/>
+					<TextBox x:Name="ElectronTolerance" Text="{Binding ElectronTolerance}" Width="25" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+					<TextBlock Text="%" VerticalAlignment="Center"/>
+				</StackPanel>
 			</StackPanel>
 			<StackPanel Orientation="Vertical" DockPanel.Dock="Right">
 				<Button Content="Update Calculation Algorithms" Click="Button_Click_UpdateAlgorithms" Height="25" Width="200" Margin="5,5,5,5" HorizontalAlignment="Right"/>

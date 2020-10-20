@@ -24,9 +24,24 @@ namespace TPS_Validation
 
 		private void Button_Click_UpdateAlgorithms(object sender, RoutedEventArgs e)
 		{
-			ValidationLog.Instance.ClearLog();
-
 			ViewModel vm = DataContext as ViewModel;
+
+			if (vm.SelectedMachine == "Select Machine")
+			{
+				MessageBox.Show("Please select a machine from the dropdown before running", "No Machine Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
+			}
+
+			if (!ValidatePhotonAlgorithmSelection())
+				return;
+
+			if (!ValidateAcurosAlgorithmSelection())
+				return;
+
+			//if (!ValidateElectronAlgorithmSelection())
+			//	return;
+
+			Globals.Instance.ClearLog();
 
 			//make sure a selection is made
 			if (vm.SelectedPhotonCalcModel != "")
@@ -39,7 +54,7 @@ namespace TPS_Validation
 					if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
 					{
 						vm.UpdateStatus($"Updating photon algorithms on {patient.Name}...");
-						UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
+						UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "", vm.SelectedAcurosCalcModel);
 					}
 
 
@@ -53,14 +68,22 @@ namespace TPS_Validation
 
 			vm.UpdateStatus("");
 
+			MessageBox.Show("Finished updating photon calculation algorithms.  Unfortunately electron algorithms are not available through scripting and must be changed by hand", "Update Finished", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
 			DisplayLogWindow();
 		}
 
 		private void Button_Click_CalcBeams(object sender, RoutedEventArgs e)
 		{
-			ValidationLog.Instance.ClearLog();
-
 			ViewModel vm = DataContext as ViewModel;
+
+			if (vm.SelectedMachine == "Select Machine")
+			{
+				MessageBox.Show("Please select a machine from the dropdown before running", "No Machine Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
+			}
+
+			Globals.Instance.ClearLog();
 
 			foreach (String id in Xml.GetPatientIDs())
 			{
@@ -78,14 +101,28 @@ namespace TPS_Validation
 
 			vm.UpdateStatus("");
 
+			System.Windows.MessageBox.Show("Completed Calculating the plans");
+
 			DisplayLogWindow();
 		}
 
 		private void Button_Click_RunEvaluation(object sender, RoutedEventArgs e)
 		{
-			ValidationLog.Instance.ClearLog();
-
 			ViewModel vm = DataContext as ViewModel;
+
+			if (vm.SelectedMachine == "Select Machine")
+			{
+				MessageBox.Show("Please select a machine from the dropdown before running", "No Machine Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
+			}
+			if (!ValidatePhotonTolerance())
+				return;
+
+			if (!ValidateElectronTolerance())
+				return;
+
+			Globals.Instance.ClearLog();
+
 			vm.Machines.Clear();
 
             foreach (String id in Xml.GetPatientIDs())
@@ -109,42 +146,56 @@ namespace TPS_Validation
 
 		private void Button_Click_RunAll(object sender, RoutedEventArgs e)
 		{
-			//need to validate that an algorithm is actually selected first
-
-			ValidationLog.Instance.ClearLog();
-
 			ViewModel vm = DataContext as ViewModel;
 
-			if (vm.SelectedPhotonCalcModel != "")
+			if (vm.SelectedMachine == "Select Machine")
 			{
-				vm.Machines.Clear();
-
-				foreach (String id in Xml.GetPatientIDs())
-				{
-					Patient patient = vm.App.OpenPatientById(id);
-
-					//only run if we are on the selected machine or we want to run for all machines
-					if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
-					{
-						//update algorithm
-						vm.UpdateStatus($"Updating photon algorithm on {patient.Name}...");
-						UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "");
-
-						//calc plans
-						vm.UpdateStatus($"Calculating plans on {patient.Name}...");
-						CalculateTestPlans.Calculate(vm, patient);
-
-						//show results
-						vm.UpdateStatus($"Running evaluation on {patient.Name}...");
-						vm.Machines.Add(new Machine(patient));
-					}
-
-					vm.App.ClosePatient();
-				}
+				MessageBox.Show("Please select a machine from the dropdown before running", "No Machine Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
 			}
-			else
+
+			//need to validate that an algorithm is actually selected first
+
+			if (!ValidatePhotonAlgorithmSelection())
+				return;
+
+			if (!ValidateAcurosAlgorithmSelection())
+				return;
+
+			//if (!ValidateElectronAlgorithmSelection())
+			//	return;
+
+			if (!ValidatePhotonTolerance())
+				return;
+
+			if (!ValidateElectronTolerance())
+				return;
+
+			Globals.Instance.ClearLog();
+
+			vm.Machines.Clear();
+
+			foreach (String id in Xml.GetPatientIDs())
 			{
-				MessageBox.Show("Please select a photon calculation algorithm first", "Error", MessageBoxButton.OK, MessageBoxImage.Hand);
+				Patient patient = vm.App.OpenPatientById(id);
+
+				//only run if we are on the selected machine or we want to run for all machines
+				if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+				{
+					//update algorithm
+					vm.UpdateStatus($"Updating photon algorithm on {patient.Name}...");
+					UpdateCalculationAlgorithms.Update(vm.App, patient, vm.SelectedPhotonCalcModel, "", vm.SelectedAcurosCalcModel);
+
+					//calc plans
+					vm.UpdateStatus($"Calculating plans on {patient.Name}...");
+					CalculateTestPlans.Calculate(vm, patient);
+
+					//show results
+					vm.UpdateStatus($"Running evaluation on {patient.Name}...");
+					vm.Machines.Add(new Machine(patient));
+				}
+
+				vm.App.ClosePatient();
 			}
 
 			vm.UpdateStatus("");
@@ -152,9 +203,10 @@ namespace TPS_Validation
 			DisplayLogWindow();
 		}
 
+		//loop through photon plans in patients and display somewhere any plans that the algorithm isn't available for and will skip if you continue to use this selection
 		private void ComboBox_ValidatePhotonSelection(object sender, RoutedEventArgs e)
 		{
-			//loop through photon plans in patients and display somewhere any plans that the algorithm isn't available for and will skip if you continue to use this selection
+			//I'm not sure if this is really doing anything, it doesn't seem to know if an algorithm is approved or not
 
 			ViewModel vm = DataContext as ViewModel;
 			bool valid = true;
@@ -197,8 +249,8 @@ namespace TPS_Validation
 
 		private void DisplayLogWindow()
 		{
-			if (ValidationLog.Instance.GetLog() != "")
-				MessageBox.Show(ValidationLog.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
+			if (Globals.Instance.GetLog() != "")
+				MessageBox.Show(Globals.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
 		}
 
 		private void Button_Click_PrintToCSV(object sender, RoutedEventArgs e)
@@ -244,15 +296,12 @@ namespace TPS_Validation
 
 		private void Button_Click_ErrorLog(object sender, RoutedEventArgs e)
 		{
-			MessageBox.Show(ValidationLog.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
+			MessageBox.Show(Globals.Instance.GetLog(), "Error Log", MessageBoxButton.OK, MessageBoxImage.Hand);
 		}
 
 		void Button_Click_PrintToPDF(object sender, RoutedEventArgs e)
 		{
 			ViewModel vm = DataContext as ViewModel;
-
-			//this was all copy pasted from DVHAnalysis, still need to go through it
-			MessageBox.Show("Under development, Proceed at your own risk! (However, you have no choice but to proceed now)");
 
 			if (vm.Machines.Count == 0)
 			{
@@ -306,6 +355,105 @@ namespace TPS_Validation
 			doc.Add(section);
 
 			return doc;
+		}
+
+		private bool ValidatePhotonAlgorithmSelection()
+		{
+			ViewModel vm = DataContext as ViewModel;
+
+			if (!String.IsNullOrEmpty(vm.SelectedPhotonCalcModel))
+				return true;
+			else
+			{
+				MessageBox.Show("Please select a photon algorithm from the dropdown", "No Photon Algorithm Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+		}
+
+		//check to see if any Acuros plans will be used and if so if an algorithm is selected
+		private bool ValidateAcurosAlgorithmSelection()
+		{
+			ViewModel vm = DataContext as ViewModel;
+
+			if (!String.IsNullOrEmpty(vm.SelectedAcurosCalcModel))
+				return true;
+
+			vm.UpdateStatus("Checking for Acuros plans");
+
+			bool AXBNeeded = false;
+
+			//loop through all patients so see if there are any AXB plans that would require and algorithm to be selected
+			foreach (String id in Xml.GetPatientIDs())
+			{
+				if (AXBNeeded)
+					continue;
+
+				Patient patient = vm.App.OpenPatientById(id);
+
+				//only chcek if we are on the selected machine or we want to run for all machines
+				if (vm.SelectedMachine == "All Machines" || patient.FirstName == vm.SelectedMachine)
+				{
+					foreach(Course course in patient.Courses)
+					{
+						if (course.PlanSetups.Where(x => x.Id.ToLower().Contains("axb")).Count() > 0)
+						{
+							AXBNeeded = true;
+							continue;
+						}
+					}
+				}
+
+				vm.App.ClosePatient();
+			}
+
+			vm.UpdateStatus("");
+
+			if (!(String.IsNullOrEmpty(vm.SelectedAcurosCalcModel) && AXBNeeded))
+				return true;
+			else
+			{
+				MessageBox.Show("Please select an Acuros algorithm from the dropdown", "No Acuros Algorithm Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+		}
+
+		private bool ValidateElectronAlgorithmSelection()
+		{
+			ViewModel vm = DataContext as ViewModel;
+
+			if (!String.IsNullOrEmpty(vm.SelectedElectronCalcModel))
+				return true;
+			else
+			{
+				MessageBox.Show("Please select an electron algorithm from the dropdown", "No Electron Algorithm Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+		}
+
+		private bool ValidatePhotonTolerance()
+		{
+			ViewModel vm = DataContext as ViewModel;
+
+			if (!Double.IsNaN(vm.PhotonTolerance))
+				return true;
+			else
+			{
+				MessageBox.Show("Please enter a photon tolerance", "No Photon Tolerance Entered", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+		}
+
+		private bool ValidateElectronTolerance()
+		{
+			ViewModel vm = DataContext as ViewModel;
+
+			if (!Double.IsNaN(vm.ElectronTolerance))
+				return true;
+			else
+			{
+				MessageBox.Show("Please enter an electron tolerance", "No Electron Tolerance Entered", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
 		}
 	}
 }

@@ -68,9 +68,9 @@ namespace TPS_Validation
                         {
                             ExternalPlanSetup testEps = testPlanSetups.Where(x => x.Id.Split('_')[0].Substring(1) == eps.Id.Split('_')[0].Substring(1)).First();
                             Beam testBeam = testEps.Beams.Where(x => x.Id == refBeam.Id).First();
-                            Cases.Add(new ValidationCase(this, refBeam, testBeam, testEps.Id.Split('_')[1] + " - " + refBeam.Id));
-                        }
-                    }
+							Cases.Add(new ValidationCase(this, refBeam, testBeam, String.Join(" - ", testEps.Id.Split('_').Skip(1).Reverse()) + " - " + refBeam.Id));
+						}
+					}
                     catch(Exception e)
                     {
                         System.Windows.MessageBox.Show($"Error in Course: {Name} Evaluation\n\n{e.Message}\n {e.StackTrace}");
@@ -91,7 +91,7 @@ namespace TPS_Validation
                     // Plan Validation Case
 
                     ExternalPlanSetup testEps = testPlanSetups.Where(x => x.Id.Split('_')[0].Substring(1) == eps.Id.Split('_')[0].Substring(1)).First();
-                    Cases.Add(new ValidationCase(this, eps, testEps, eps.Id));
+                    Cases.Add(new ValidationCase(this, eps, testEps, eps.Id.Substring(eps.Id.IndexOf('_')+1)));
                 }
             
             }

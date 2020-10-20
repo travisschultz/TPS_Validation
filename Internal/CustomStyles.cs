@@ -55,7 +55,7 @@ namespace TPS_Validation.Internal
 
 			var columnHeader = doc.Styles.AddStyle(ColumnHeader, StyleNames.Normal);
 			columnHeader.Font.Size = 9;
-			columnHeader.ParagraphFormat.Alignment = ParagraphAlignment.Left;
+			columnHeader.ParagraphFormat.Alignment = ParagraphAlignment.Center;
 			columnHeader.ParagraphFormat.Font.Bold = true;
 			columnHeader.ParagraphFormat.LeftIndent = Size.TableCellPadding;
 			columnHeader.ParagraphFormat.RightIndent = Size.TableCellPadding;

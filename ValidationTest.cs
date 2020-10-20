@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using VMS.TPS.Common.Model.API;
@@ -19,8 +20,10 @@ namespace TPS_Validation
         private double _tolerance;
         private bool _result;
 		
-		public string OldDoseText { get { return _oldDose.ToString(); } }
-		public string NewDoseText { get { return _newDose.ToString(); } }
+		//public string OldDoseText { get { return _oldDose.ToString(); } }
+        public string OldDoseText { get { return $"{String.Format(CultureInfo.InvariantCulture, "{0:N1}", _oldDose.Dose)} { _oldDose.UnitAsString}"; } }
+        //public string NewDoseText { get { return _newDose.ToString(); } }
+        public string NewDoseText { get { return $"{String.Format(CultureInfo.InvariantCulture, "{0:N1}", _newDose.Dose)} { _newDose.UnitAsString}"; } }
         public string ToleranceText { get { return String.Format("{0:0.00}%", _tolerance); } }
         public string TestName { get { return _testName; } }
 		public string PercentDifferenceText { get { return String.Format("{0:0.00}%", _percentDifference); } }
@@ -40,7 +43,7 @@ namespace TPS_Validation
                 }
                 else
                 {
-                    return "Fail";
+                    return "Warning";
                 }
             }
         }
@@ -54,12 +57,16 @@ namespace TPS_Validation
 			}
 		}
 
-        public ValidationTest(string name, DoseValue oldVal, DoseValue newVal, double tolerance)  // think 
+        public ValidationTest(string name, DoseValue oldVal, DoseValue newVal, ValidationCase valCase)  // think 
         {
+			_case = valCase;
             _testName = name;
             _oldDose = oldVal;
             _newDose = newVal;
-            _tolerance = tolerance;
+			if (_case.Group.Name.ToLower().Contains("electron"))
+				_tolerance = Globals.Instance.GetElectronTolerance();
+			else
+				_tolerance = Globals.Instance.GetPhotonTolerance();
             RunTestEvaluation();
         }
 

@@ -13,7 +13,7 @@ namespace TPS_Validation
         {
             p.BeginModifications();
 
-			foreach (Course c in p.Courses.Where(c => !c.Id.ToLower().Contains("electron")))
+			foreach (Course c in p.Courses.Where(c => !c.Id.ToLower().Contains("electron")))	//can't calc electrons in this version
 			//foreach (Course c in p.Courses)
 			{
                 foreach (ExternalPlanSetup ebps in c.ExternalPlanSetups)
@@ -22,7 +22,7 @@ namespace TPS_Validation
                     if (ebps.Id[0] == 'T')
                     {
 						// Find reference plan and save the MU
-						ExternalPlanSetup refPlan = c.ExternalPlanSetups.Where(x => x.Id.Substring(0,2) == "R" + ebps.Id[1]).First();
+						ExternalPlanSetup refPlan = c.ExternalPlanSetups.Where(x => x.Id.Split('_')[0] == "R" + ebps.Id.Split('_')[0].Substring(1)).First();
 						List<KeyValuePair<string, MetersetValue>> MUList = new List<KeyValuePair<string, MetersetValue>>();
 
 						foreach(Beam b in refPlan.Beams)
@@ -35,17 +35,14 @@ namespace TPS_Validation
                             vm.UpdateStatus($"Calculating Machine: {ebps.Beams.First().TreatmentUnit.Id} Course: {ebps.Course.Id} Plan: {ebps.Id}");
 							//cr=ebps.CalculateDose();
 							ebps.CalculateDoseWithPresetValues(MUList);        // this might only work for the IMRT plan         
-
-							// only adjust the MUs to 100 for non-IMRT plans
-							if (c.Id.ToLower().Contains("electron") || c.Id.ToLower().Contains("photon"))
+							
+							//loop through each beam and adjust the MUs to match the reference plan
+							foreach (Beam b in ebps.Beams.Where(x => !x.IsSetupField))
 							{
-								//loop through each beam and adjust the MUs to 100
-								foreach (Beam b in ebps.Beams)
-								{
-									BeamParameters beamParams = b.GetEditableParameters();
-									beamParams.WeightFactor = b.WeightFactor * 100.0 / b.Meterset.Value;
-									b.ApplyParameters(beamParams);
-								}
+								BeamParameters beamParams = b.GetEditableParameters();
+								//beamParams.WeightFactor = b.WeightFactor * 100.0 / b.Meterset.Value;  //originally was this to make each beam 100.0 MU
+								beamParams.WeightFactor = b.WeightFactor * MUList.Where(x => x.Key == b.Id).First().Value.Value / b.Meterset.Value;	//this should now make each beam whatever the previous value was
+								b.ApplyParameters(beamParams);
 							}
                         }
                         catch(Exception e)
@@ -56,9 +53,7 @@ namespace TPS_Validation
                 }
             }
 
-            System.Windows.MessageBox.Show("Completed Calculating the plans");
-
-            vm.App.SaveModifications(); //!!! modified line when changed to passing view model. Untested, could cause issues.
+            vm.App.SaveModifications(); 
             
         }
     }

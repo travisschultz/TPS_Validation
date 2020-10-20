@@ -9,9 +9,15 @@ namespace TPS_Validation.Internal
 		//placeholder, delete this method
 		public void Add(Section section, ViewModel vm)
 		{
+			int pageBreakCount = 0;
+
             foreach(Machine m in vm.Machines)
             {
-                section.AddParagraph(m.MachineID, StyleNames.Heading1);
+				// create new page for each machine
+				if(pageBreakCount > 0)
+					section.AddPageBreak();
+
+				section.AddParagraph(m.MachineID, StyleNames.Heading1);
 
                 foreach(ValidationGroup vg in m.Groups)
                 {
@@ -24,6 +30,8 @@ namespace TPS_Validation.Internal
                         AddValidationTests(section, vc);
                     }
                 }
+
+				pageBreakCount++;
                 //section.AddParagraph("Validation table will go here", StyleNames.Heading1);
             }
 			
@@ -36,16 +44,18 @@ namespace TPS_Validation.Internal
             // Just hard coding the width for now.  Think there will always be 4 columns, 5 if a pass/fail column is added.
             int columnWidth = 85;
 
-            for (int iCols = 0; iCols < 6; iCols++)
+            table.AddColumn(100); // Making the first column bigger
+            for (int iCols = 0; iCols < 5; iCols++)
             {
                 table.AddColumn(columnWidth);
+                table.Columns[iCols + 1].Format.Alignment = ParagraphAlignment.Center;
             }
 
             var headerRow = table.AddRow();
             AddHeader(headerRow.Cells[0], "Test");
-            AddHeader(headerRow.Cells[1], "Reference Value");
+            AddHeader(headerRow.Cells[1], "Ref. Value");
             AddHeader(headerRow.Cells[2], "Test Value");
-            AddHeader(headerRow.Cells[3], "% Difference");
+            AddHeader(headerRow.Cells[3], "% Diff.");
             AddHeader(headerRow.Cells[4], "Tolerance");
             AddHeader(headerRow.Cells[5], "Result");
 
@@ -55,6 +65,7 @@ namespace TPS_Validation.Internal
                 var row = table.AddRow();
                 row.Cells[0].AddParagraph(vt.TestName);
                 row.Cells[1].AddParagraph(vt.OldDoseText);
+                //row.Cells[1].Format.Alignment = ParagraphAlignment.Center;
                 row.Cells[2].AddParagraph(vt.NewDoseText);
                 row.Cells[3].AddParagraph(vt.PercentDifferenceText);
                 row.Cells[4].AddParagraph(vt.ToleranceText);
@@ -116,11 +127,12 @@ namespace TPS_Validation.Internal
 		private static void FormatTable(Table table, Section section)
 		{
 			table.LeftPadding = 5;
-			table.TopPadding = 5;
+			table.TopPadding = 2;
 			table.RightPadding = 5;
-			table.BottomPadding = 5;
+			table.BottomPadding = 2;
 			table.Format.LeftIndent = Size.TableCellPadding;
 			table.Format.RightIndent = Size.TableCellPadding;
+            //table.Format.Alignment = ParagraphAlignment.Center;
 			//get size info
 			PageSetup.GetPageSize(PageFormat.Letter, out Unit width, out Unit height);
 			Unit tableWidth = 0;
