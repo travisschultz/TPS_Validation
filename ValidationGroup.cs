@@ -75,7 +75,7 @@ namespace TPS_Validation
                     {
                         System.Windows.MessageBox.Show($"Error in Course: {Name} Evaluation\n\n{e.Message}\n {e.StackTrace}");
                     }
-                    
+
 
                     // ***** THINK THE BELOW CODE RAN INTO ISSUES WITH FIELD ORDER
                     //for (int iBeam = 0; iBeam < testPlanSetups.ElementAt(iCase).Beams.Count(); iBeam++)
@@ -86,7 +86,7 @@ namespace TPS_Validation
                     //    Cases.Add(new ValidationCase(refBeam, testBeam, caseName));
                     //}
                 }
-                else
+                else if (Name.ToLower().Contains("dynamic"))
                 {
                     // Plan Validation Case
 

@@ -13,7 +13,8 @@ namespace TPS_Validation
         {
             p.BeginModifications();
 
-			foreach (Course c in p.Courses.Where(c => !c.Id.ToLower().Contains("electron")))	//can't calc electrons in this version
+			//foreach (Course c in p.Courses.Where(c => !c.Id.ToLower().Contains("electron")))	//can't calc electrons in this version
+            foreach (Course c in p.Courses.Where(c => c.Id.ToLower().Contains("photon") || c.Id.ToLower().Contains("dynamic")))
 			//foreach (Course c in p.Courses)
 			{
                 foreach (ExternalPlanSetup ebps in c.ExternalPlanSetups)

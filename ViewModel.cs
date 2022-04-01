@@ -10,7 +10,7 @@ using System.Windows.Threading;
 using VMS.TPS.Common.Model.API;
 
 [assembly: ESAPIScript(IsWriteable = true)]
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.2")]
 
 namespace TPS_Validation
 {
