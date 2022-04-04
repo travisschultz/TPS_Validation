@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("TPS_Validation")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Port Huron Hospital")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TPS_Validation")]
-[assembly: AssemblyCopyright("Copyright © Port Huron Hospital 2019")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -39,6 +39,7 @@ using System.Windows;
 											  //(used if a resource is not found in the page,
 											  // app, or any theme specific resource dictionaries)
 )]
+[assembly: AssemblyVersion("1.2.0.0")]
 
 
 // Version information for an assembly consists of the following four values:

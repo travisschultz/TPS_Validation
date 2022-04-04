@@ -14,8 +14,8 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="500" MinWidth="118"/>
-            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="700" MinWidth="118"/>
+            <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
 
         <DockPanel Margin="5,5,5,5" Grid.Row="0" Grid.Column="0" Grid.RowSpan="1">
@@ -55,7 +55,7 @@
             </DockPanel>
         </DockPanel>
 
-        <ListView ItemsSource="{Binding Machines}" Margin="5,66,5,0" Grid.Row="0" Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="False" Height="171" VerticalAlignment="Top">
+        <ListView ItemsSource="{Binding Machines}" Margin="5,34,5,0" Grid.Row="0" Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="False" Height="377" VerticalAlignment="Top">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Expander Header="{Binding MachineID}" IsExpanded="True">
