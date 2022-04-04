@@ -58,10 +58,22 @@
         <ListView ItemsSource="{Binding Machines}" Margin="5,34,5,0" Grid.Row="0" Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="False" Height="377" VerticalAlignment="Top">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Expander Header="{Binding MachineID}" IsExpanded="True">
+                    <Expander IsExpanded="True">
+                        <Expander.Header>
+                            <Border Padding="5" Background="LightGray" BorderThickness="2" BorderBrush="DarkSlateBlue" CornerRadius="5">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Machine: " FontSize="16" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding MachineId}" FontSize="14" Foreground="CornflowerBlue"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Expander.Header>
                         <ListView ItemsSource="{Binding Groups}">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
+                                    <StackPanel>
+                                    <!-- This is where the display stuff for tests would go -->
                                     <Expander Header="{Binding Name}" IsExpanded="True">
                                         <ListView ItemsSource="{Binding Cases}">
                                             <ListView.ItemTemplate>
@@ -93,6 +105,8 @@
                                             </ListView.ItemTemplate>
                                         </ListView>
                                     </Expander>
+                                    </StackPanel>
+
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
